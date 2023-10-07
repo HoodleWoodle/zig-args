@@ -1,0 +1,208 @@
+const std = @import("std");
+const Type = std.builtin.Type;
+
+const MAX = 256;
+
+pub const Option = struct {
+    tmp: u8 = 0, // TODO: IMPL
+
+    fn init(comptime args: anytype) Option {
+        _ = args; // TODO: IMPL
+        return Option{};
+    }
+};
+
+pub const PosArg = struct {
+    tmp: u8 = 0, // TODO: IMPL
+
+    fn init(comptime args: anytype) PosArg {
+        _ = args; // TODO: IMPL
+        return PosArg{};
+    }
+};
+
+pub const Mutex = struct {
+    options: [MAX]?Option = [_]?Option{null} ** MAX,
+
+    const Self = @This();
+
+    fn init(comptime args: anytype) Mutex {
+        _ = args;
+        return Mutex{};
+    }
+
+    pub fn addOption(comptime self: *Self, comptime args: anytype) void {
+        _ = comptime initNext(Option, &self.options, args);
+    }
+};
+
+pub const Group = struct {
+    name: ?[]const u8 = null,
+
+    mutices: [MAX]?Mutex = [_]?Mutex{null} ** MAX, // default mutex is no actual mutex and just stores the element
+
+    fn init(comptime args: anytype) Group {
+        const ArgsType = @TypeOf(args);
+        if (@typeInfo(ArgsType) != .Struct) {
+            @compileError("expected struct argument, found " ++ @typeName(ArgsType));
+        }
+
+        var self = Group{};
+        if (@hasField(ArgsType, "name")) {
+            self.name = args.name;
+        }
+        self.mutices[0] = Mutex.init(.{});
+        return self;
+    }
+
+    const Self = @This();
+
+    pub fn addOption(comptime self: *Self, comptime args: anytype) void {
+        self.mutices[0].?.addOption(args);
+    }
+
+    pub fn addMutex(comptime self: *Self) *Mutex {
+        return comptime initNext(Mutex, &self.mutices, .{});
+    }
+};
+
+pub const Command = struct {
+    name: []const u8,
+    description: []const u8,
+
+    groups: [MAX]?Group = [_]?Group{null} ** MAX,
+    arguments: [MAX]?PosArg = [_]?PosArg{null} ** MAX,
+
+    fn init(comptime args: anytype) Command {
+        const ArgsType = @TypeOf(args);
+        if (@typeInfo(ArgsType) != .Struct) {
+            @compileError("expected struct argument, found " ++ @typeName(ArgsType));
+        }
+
+        var self = Command{ .name = args.name, .description = args.description };
+        self.groups[0] = Group.init(.{});
+        return self;
+    }
+
+    const Self = @This();
+
+    pub fn addArgument(comptime self: *Self, comptime args: anytype) void {
+        _ = comptime initNext(PosArg, &self.arguments, args);
+    }
+
+    pub fn addOption(comptime self: *Self, comptime args: anytype) void {
+        self.groups[0].?.addOption(args);
+    }
+
+    pub fn addMutex(comptime self: *Self) *Mutex {
+        return self.groups[0].?.addMutex();
+    }
+
+    pub fn addGroup(comptime self: *Self, comptime args: anytype) *Group {
+        return comptime initNext(Group, &self.groups, args);
+    }
+};
+
+pub const Definition = struct {
+    commands: [MAX]?Command = [_]?Command{null} ** MAX,
+
+    pub fn init(comptime args: anytype) Definition {
+        var self = Definition{};
+        self.commands[0] = Command.init(args);
+        return self;
+    }
+
+    const Self = @This();
+
+    pub fn addArgument(comptime self: *Self, comptime args: anytype) void {
+        if (self.commands[1] != null) {
+            @compileError("The main command cannot contain positional arguments and sub-commands!");
+        }
+        self.commands[0].?.addArgument(args);
+    }
+
+    pub fn addOption(comptime self: *Self, comptime args: anytype) void {
+        self.commands[0].?.addOption(args);
+    }
+
+    pub fn addMutex(comptime self: *Self) *Mutex {
+        return self.commands[0].?.addMutex();
+    }
+
+    pub fn addGroup(comptime self: *Self, comptime args: anytype) *Group {
+        return self.commands[0].?.addGroup(args);
+    }
+
+    pub fn addCommand(comptime self: *Self, comptime args: anytype) *Command {
+        if (self.commands[0].?.arguments[0] != null) {
+            @compileError("The main command cannot contain positional arguments and sub-commands!");
+        }
+        return comptime initNext(Command, &self.commands, args);
+    }
+};
+
+fn initNext(comptime T: type, comptime array: []?T, comptime args: anytype) *T {
+    array[1] = T.init(args);
+    return &(array[1].?);
+
+    //for (array, 0..) |*member, i| {
+    //    if (member.*) |*next| {
+    //        _ = next;
+    //        continue;
+    //    }
+    //
+    //    array[i] = T.init(args);
+    //    return &(array[i].?);
+    //}
+    //
+    //// TODO: @compileError("Arg Definition cannot hold that much elements.");
+    //unreachable;
+}
+
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+
+pub const Args = struct {};
+pub const Result = union(enum) { args: Args, err: []const u8 };
+
+pub fn usage(comptime def: Definition) []const u8 {
+    _ = def;
+    return "";
+}
+
+pub fn help(comptime def: Definition) []const u8 {
+    _ = def;
+    return "";
+}
+
+pub fn parse(comptime def: Definition, cli_args: anytype) Result {
+    _ = cli_args;
+    _ = def;
+    return Result{ .err = "" };
+}
+
+pub fn handle_default(comptime def: Definition, cli_args: anytype) Result {
+    _ = cli_args;
+    _ = def;
+    return Result{ .err = "" };
+}
