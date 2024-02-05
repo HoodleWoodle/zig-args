@@ -20,22 +20,57 @@ test "todo" {
 
     //try std.testing.expect(result == args.Result.err);
 
-    const def2 = .{
-        .name = "0",
-        .description = "description",
-        .mutices = .{ .{ .name = "1" }, .{ .name = "2" } },
-        .commands = .{
-            .name = "3",
-            .description = "description",
-            .options = .{.{ .name = "4" }},
-            .arguments = .{.{ .name = "5" }},
+    //const def2 = .{
+    //    .name = "0",
+    //    .description = "description",
+    //    .mutices = .{ .{ .name = "1" }, .{ .name = "2" } },
+    //    .commands = .{
+    //        .name = "3",
+    //        .description = "description",
+    //        .options = .{.{ .name = "4" }},
+    //        .arguments = .{.{ .name = "5" }},
+    //    },
+    //    .groups = .{
+    //        .{
+    //            .name = "6",
+    //            .options = .{ .{ .name = "7" }, .{ .name = "8" } },
+    //        },
+    //    },
+    //};
+    //_ = def2;
+}
+
+test "cmd" {
+    const definition = .{
+        .name = "cmd",
+        .description = "descr",
+        .options = .{
+            .{ .name = "o0", .description = "o0-descr" },
+        },
+        .arguments = .{
+            .{ .name = "a0", .description = "a0-descr" },
+            .{ .name = "a1", .description = "a1-descr" },
         },
         .groups = .{
             .{
-                .name = "6",
-                .options = .{ .{ .name = "7" }, .{ .name = "8" } },
+                .name = "g0",
+                .options = .{
+                    .{ .name = "o1", .description = "o1-descr" },
+                },
+                .mutices = .{
+                    .{
+                        .{ .name = "o2", .description = "o2-descr" },
+                        .{ .name = "o3", .description = "o3-descr" },
+                    },
+                },
             },
         },
     };
-    _ = def2;
+    _ = definition;
+}
+
+test "sub-cmd" {
+    // cmd
+    // cmd sub0
+    // cmd sub1
 }

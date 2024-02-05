@@ -6,9 +6,9 @@ This is a library to parse cli arguments with [Zig](https://ziglang.org/) progra
 1. [General](#general)
 2. [Definition](#definition)
    1. [Option](#option)
-   2. [Group](#group)
+   2. [Argument](#positional-argument)
    3. [Mutex](#mutual-exclusive-group)
-   4. [Argument](#argument)
+   4. [Group](#group)
    5. [Command](#command)
 3. [Functions](#functions)
    1. [Args](#args)
@@ -34,22 +34,36 @@ Name              | Type                                                        
 ```name```        | ```[]const u8```                                            | ✔
 ```description``` | ```[]const u8```                                            | ✔
 ```options```     | anonymous tuple of [```Option```](#option)s                 | ✘
-```groups```      | anonymous tuple of [```Group```](#group)s                   | ✘
-```mutices```     | anonymous tuple of [```Mutex```](#mutual-exclusive-group)s  | ✘
 ```arguments```   | anonymous tuple of [```Argument```](#positional-argument)s  | ✘
+```mutices```     | anonymous tuple of [```Mutex```](#mutual-exclusive-group)s  | ✘
+```groups```      | anonymous tuple of [```Group```](#group)s                   | ✘
 ```commands```    | anonymous tuple of [```Command```](#command)s               | ✘
 
 ### Option
 This is defined by an ***anonymous struct***.
 
-Name              | Type                      | Description                                    | Required  | Default
------------------ | :-----------------------: | ---------------------------------------------- |:--------: | -------
-```name```        | ```[]const u8```          |                                                | ✔         |
-```description``` | ```[]const u8```          |                                                | ✔         |
-```name_short```  | ```?u8```                 | possible values: ```[a-zA-Z]```                | ✘         | ```null```
-```args```        | ```anytype```             | anonymous struct of ```type```s                | ✘         | ```.{}```
-```default```     | ```?```anonymous struct   | based on ```args```; ```null``` means optional | ✘         | ```null```
-```count```       | ```?u8```                 | maximum number of invocations                  | ✘         | ```null```
+Name              | Type                           | Description                                              | Required  | Default
+----------------- | :----------------------------: | -------------------------------------------------------- |:--------: | -------
+```name```        | ```[]const u8```               |                                                          | ✔         |
+```description``` | ```[]const u8```               |                                                          | ✔         |
+```name_short```  | ```?u8```                      | possible values: ```[a-zA-Z]```                          | ✘         | ```null```
+```args```        | anonymous tuple of ```type```s | anonymous struct of ```type```s                          | ✘         | ```.{}```
+```default```     | ```?anytype```                 | based on ```args```                                      | ✘         | ```null```
+```count```       | ```?u8```                      | maximum number of invocations; ```null``` means infinite | ✘         | ```null```
+
+### Positional Argument
+
+Name              | Type             | Description                                    | Required  | Default
+----------------- | :--------------: | ---------------------------------------------- |:--------: | -------
+```name```        | ```[]const u8``` |                                                | ✔         |
+```description``` | ```[]const u8``` |                                                | ✔         |
+```datatype```    | ```type```       |                                                | ✘         | ```[]const u8```
+```default```     | ```?anytype```   | based on ```args```                            | ✘         | ```null```
+
+### Mutual exclusive group
+From a mutual exclusive group only one [Option](#option) can be picked.
+
+This is defined by an ***anonymous tuple*** of [Options](#option).
 
 ### Group
 A group combines a set of [Options](#option) and [Mutices](#mutual-exclusive-group) under a given name.
@@ -60,21 +74,7 @@ Name              | Type                                                        
 ----------------- | :---------------------------------------------------------: |:--------:
 ```name```        | ```[]const u8```                                            | ✔
 ```options```     | anonymous tuple of [```Option```](#option)s                 | ✘
-```groups```      | anonymous tuple of [```Group```](#group)s                   | ✘
-
-### Mutual exclusive group
-From a mutual exclusive group only one [Option](#option) can be picked.
-
-This is defined by an ***anonymous tuple*** of [Options](#option).
-
-### Positional Argument
-
-Name              | Type                      | Description                                    | Required  | Default
------------------ | :-----------------------: | ---------------------------------------------- |:--------: | -------
-```name```        | ```[]const u8```          |                                                | ✔         |
-```description``` | ```[]const u8```          |                                                | ✔         |
-```args```        | ```anytype```             | anonymous struct of ```type```s                | ✘         | ```.{}```
-```default```     | ```?```anonymous struct   | based on ```args```; ```null``` means optional | ✘         | ```null```
+```mutices```     | anonymous tuple of [```Mutex```](#mutual-exclusive-group)s  | ✘
 
 ### Command
 This defines a sub-command.
@@ -86,9 +86,9 @@ Name              | Type                                                        
 ```name```        | ```[]const u8```                                            | ✔
 ```description``` | ```[]const u8```                                            | ✔
 ```options```     | anonymous tuple of [```Option```](#option)s                 | ✘
-```groups```      | anonymous tuple of [```Group```](#group)s                   | ✘
-```mutices```     | anonymous tuple of [```Mutex```](#mutual-exclusive-group)s  | ✘
 ```arguments```   | anonymous tuple of [```Argument```](#positional-argument)s  | ✘
+```mutices```     | anonymous tuple of [```Mutex```](#mutual-exclusive-group)s  | ✘
+```groups```      | anonymous tuple of [```Group```](#group)s                   | ✘
 
 ### Functions
 Name                   | Description
